@@ -19,12 +19,21 @@
 
 include_recipe "build-essential::default"
 
+if node.platform_family == 'debian'
+  include_recipe "apt::default"
+end
+
 node[:ruby2][:uninstall_packages].each do |pkg|
   package(pkg) { action :remove }
+end
+
+node[:ruby2][:dependencies].each do |pkg|
+  package(pkg)
 end
 
 ark 'ruby' do
   url node[:ruby2][:source_url]
   version node[:ruby2][:version]
   action :install_with_make
+  not_if { ::File.exists?('/usr/local/bin/ruby') && `/usr/local/bin/ruby -v` =~ /^ruby #{node[:ruby2][:version]}*/ }
 end
